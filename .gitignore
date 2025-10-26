@@ -1,0 +1,15 @@
+# Evita subir credenciales sensibles
+gcp_service_account.json
+.streamlit/secrets.toml
+
+# Archivos del sistema y entorno virtual
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+env/
+venv/
+
+# Archivos de Streamlit y logs
+.streamlit/config.toml
+logs/
