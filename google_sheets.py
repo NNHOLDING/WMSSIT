@@ -5,7 +5,7 @@ from datetime import datetime
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
-SHEET_LPN = "LPNs generados"
+SHEET_LPN = "LPNs Generados"
 
 def get_lpn_sheet():
     creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
@@ -33,4 +33,5 @@ def generate_lpns(cantidad, usuario, bodega, tipo):
         fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         nuevos.append([lpn, fecha, usuario, "Disponible", bodega])
     sheet.append_rows(nuevos)
+
     return nuevos
