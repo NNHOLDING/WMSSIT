@@ -1,64 +1,36 @@
 import streamlit as st
+from inicio import mostrar_login, get_sheet
 import pandas as pd
 import gspread
-from google.oauth2.service_account import Credentials
+from oauth2client.service_account import ServiceAccountCredentials
+import pytz
+from datetime import datetime
 
-# Configuración Google Sheets
-SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
-SPREADSHEET_NAME = "WMS SIT"
-SHEET_USUARIOS = "Usuarios"
-
-# Conexión usando st.secrets
-def get_worksheet(sheet_name):
-    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPE)
-    client = gspread.authorize(creds)
-    sheet = client.open(SPREADSHEET_NAME).worksheet(sheet_name)
-    data = sheet.get_all_values()
-    df = pd.DataFrame(data[1:], columns=data[0])
-    return df
-
-# Autenticación
-def validar_login(usuario, contraseña):
-    try:
-        df_usuarios = get_worksheet(SHEET_USUARIOS)
-        user_row = df_usuarios[
-            (df_usuarios["Usuario"] == usuario) & (df_usuarios["Contraseña"] == contraseña)
-        ]
-        if not user_row.empty:
-            return user_row.iloc[0]["Rol"]
-        else:
-            return None
-    except Exception as e:
-        st.error(f"Error al conectar con Google Sheets: {e}")
-        return None
+# Configuración de zona horaria Costa Rica
+cr_timezone = pytz.timezone("America/Costa_Rica")
+hora_actual = datetime.now(cr_timezone).strftime("%d/%m/%Y %H:%M")
 
 # Configuración de página
-st.set_page_config(page_title="WMS SIT", layout="wide")
+st.set_page_config(
+    page_title="WMS SIT",
+    page_icon="📦",
+    layout="wide"
+)
 
-# Estado de sesión
+# Inicializar sesión
 if "logueado" not in st.session_state:
     st.session_state.logueado = False
     st.session_state.rol = ""
     st.session_state.usuario = ""
 
-# Login
+# Mostrar login si no está autenticado
 if not st.session_state.logueado:
-    st.title("🔐 Inicio de sesión - WMS SIT")
-    usuario = st.text_input("Usuario")
-    contraseña = st.text_input("Contraseña", type="password")
-    if st.button("Ingresar"):
-        rol = validar_login(usuario.strip(), contraseña.strip())
-        if rol:
-            st.session_state.logueado = True
-            st.session_state.rol = rol
-            st.session_state.usuario = usuario
-            st.success(f"Bienvenido {usuario} - Rol: {rol}")
-            st.rerun()
-        else:
-            st.error("Usuario o contraseña incorrectos")
+    # Mostrar logo
+    st.image("https://drive.google.com/uc?export=view&id=1CgMBkG3rUwWOE9OodfBN1Tjinrl0vMOh", use_column_width=True)
+    mostrar_login()
 
-# Menú principal
-if st.session_state.logueado:
+# Mostrar contenido si está autenticado
+else:
     st.sidebar.title("📁 Módulos disponibles")
     hojas_disponibles = [
         "LPNs",
@@ -72,12 +44,28 @@ if st.session_state.logueado:
     seleccion = st.sidebar.selectbox("Selecciona una hoja", hojas_disponibles)
 
     st.title(f"📄 Datos de: {seleccion}")
+    st.caption(f"🕒 Hora local: {hora_actual}")
+
+    # Conexión a la hoja seleccionada
+    SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+    CREDS_FILE = "credentials.json"
+    SPREADSHEET_NAME = "WMS SIT"
+
+    def get_hoja(nombre):
+        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+        client = gspread.authorize(creds)
+        sheet = client.open(SPREADSHEET_NAME).worksheet(nombre)
+        data = sheet.get_all_values()
+        df = pd.DataFrame(data[1:], columns=data[0])
+        return df
+
     try:
-        df = get_worksheet(seleccion)
+        df = get_hoja(seleccion)
         st.dataframe(df)
     except Exception as e:
         st.error(f"No se pudo cargar la hoja '{seleccion}': {e}")
 
+    # Cierre de sesión
     if st.sidebar.button("Cerrar sesión"):
         st.session_state.logueado = False
         st.session_state.rol = ""
