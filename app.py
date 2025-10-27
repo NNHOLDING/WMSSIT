@@ -1,27 +1,29 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 
 # Configuración Google Sheets
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDS_FILE = "credentials.json"
-SPREADSHEET_NAME = "TuNombreDeHoja"  # Reemplaza con el nombre real
+SCOPE = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+SPREADSHEET_NAME = "WMS SIT"
+SHEET_USUARIOS = "Usuarios"
 
-# Función para conectar con Google Sheets
+# Conexión usando st.secrets
 def get_worksheet(sheet_name):
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+    creds = Credentials.from_service_account_info(st.secrets["gcp_service_account"], scopes=SCOPE)
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(sheet_name)
     data = sheet.get_all_values()
     df = pd.DataFrame(data[1:], columns=data[0])
     return df
 
-# Función de login
+# Autenticación
 def validar_login(usuario, contraseña):
     try:
-        df_usuarios = get_worksheet("Usuarios")
-        user_row = df_usuarios[(df_usuarios["Usuario"] == usuario) & (df_usuarios["Contraseña"] == contraseña)]
+        df_usuarios = get_worksheet(SHEET_USUARIOS)
+        user_row = df_usuarios[
+            (df_usuarios["Usuario"] == usuario) & (df_usuarios["Contraseña"] == contraseña)
+        ]
         if not user_row.empty:
             return user_row.iloc[0]["Rol"]
         else:
@@ -41,11 +43,11 @@ if "logueado" not in st.session_state:
 
 # Login
 if not st.session_state.logueado:
-    st.title("🔐 Inicio de sesión - WMS Smart Intelligence Tools")
+    st.title("🔐 Inicio de sesión - WMS SIT")
     usuario = st.text_input("Usuario")
     contraseña = st.text_input("Contraseña", type="password")
     if st.button("Ingresar"):
-        rol = validar_login(usuario, contraseña)
+        rol = validar_login(usuario.strip(), contraseña.strip())
         if rol:
             st.session_state.logueado = True
             st.session_state.rol = rol
@@ -58,7 +60,7 @@ if not st.session_state.logueado:
 # Menú principal
 if st.session_state.logueado:
     st.sidebar.title("📁 Módulos disponibles")
-    opciones = [
+    hojas_disponibles = [
         "LPNs",
         "Recepción SKUs",
         "LPNs Eliminados",
@@ -67,7 +69,7 @@ if st.session_state.logueado:
         "Resumen de Almacenamiento",
         "Reportes por Pasillo"
     ]
-    seleccion = st.sidebar.selectbox("Selecciona una hoja", opciones)
+    seleccion = st.sidebar.selectbox("Selecciona una hoja", hojas_disponibles)
 
     st.title(f"📄 Datos de: {seleccion}")
     try:
