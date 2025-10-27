@@ -48,28 +48,28 @@ def restablecer_contraseña(usuario, nueva_contraseña):
 
 # Interfaz de login
 def mostrar_login():
-    # Estilo para campos centrados y compactos
+    # Estilo para centrar y compactar campos
     st.markdown("""
         <style>
-        .login-container {
+        .login-box {
             max-width: 400px;
             margin: auto;
             padding: 20px;
         }
-        .login-container input {
+        .login-box input {
             width: 100% !important;
             padding: 8px;
             font-size: 14px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
-        .login-container button {
+        .login-box button {
             width: 100%;
+            margin-top: 10px;
         }
         </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<div class='login-container'>", unsafe_allow_html=True)
-    st.image("https://github.com/NNHOLDING/WMSSIT/blob/main/logo3.png?raw=true", width=180)
+    st.markdown("<div class='login-box'>", unsafe_allow_html=True)
     st.markdown("<h4 style='text-align: center;'>🔐 WMS - Inicio de sesión</h4>", unsafe_allow_html=True)
 
     usuario = st.text_input("Usuario", key="usuario")
@@ -85,21 +85,4 @@ def mostrar_login():
             st.session_state.logueado = True
             st.session_state.rol = rol
             st.session_state.usuario = usuario
-            st.success(f"Bienvenido {usuario}\nRol: {rol}")
-            st.rerun()
-        else:
-            st.error("Usuario o contraseña incorrectos")
-
-    st.markdown("---")
-    st.markdown("<h5 style='text-align: center;'>🔁 Restablecer contraseña</h5>", unsafe_allow_html=True)
-
-    usuario_reset = st.text_input("Usuario para restablecer", key="usuario_reset")
-    nueva_pass = st.text_input("Nueva contraseña", type="password", key="nueva_pass")
-
-    if st.button("Restablecer"):
-        if restablecer_contraseña(usuario_reset.strip(), nueva_pass.strip()):
-            st.success("Contraseña actualizada correctamente")
-        else:
-            st.error("No se pudo actualizar la contraseña")
-
-    st.markdown("</div>", unsafe_allow_html=True)
+           
