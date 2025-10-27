@@ -19,7 +19,6 @@ if "logueado" not in st.session_state:
 
 # Pantalla de login
 if not st.session_state.logueado:
-    st.image("https://github.com/NNHOLDING/WMSSIT/blob/main/logo3.png?raw=true", width=240)
     mostrar_login()
 
 # Interfaz principal
