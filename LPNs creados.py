@@ -8,7 +8,7 @@ import pandas as pd
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
-SHEET_LPN = "LPNs generados"
+SHEET_LPN = "LPNs Generados"
 
 # Función para conectar con hoja LPNs
 def get_lpn_sheet():
@@ -132,7 +132,7 @@ if st.session_state.get("rol") == "Admin":
                 if "usuario" in st.session_state and "bodega" in st.session_state:
                     nuevos = generate_lpns(cantidad, st.session_state.usuario, st.session_state.bodega, tipo_etiqueta)
                     st.success(f"{len(nuevos)} LPNs generados exitosamente.")
-                    st.write("Últimos LPNs generados:")
+                    st.write("Últimos LPNs Generados:")
                     st.dataframe(pd.DataFrame(nuevos, columns=["Número LPN", "Fecha creación", "Creado por", "Estado", "Bodega"]))
                 else:
                     st.error("Usuario o bodega no definidos en sesión.")
@@ -143,3 +143,4 @@ else:
 
 # 📦 GRILLA CON FILTROS Y PAGINACIÓN (visible para todos)
 show_disponibles()
+
