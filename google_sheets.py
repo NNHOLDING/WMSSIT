@@ -102,3 +102,10 @@ def show_disponibles():
             file_name=nombre_archivo,
             mime="text/csv"
         )
+
+def get_sheet(nombre_hoja):
+    creds = get_credentials()
+    client = gspread.authorize(creds)
+    sheet = client.open(SPREADSHEET_NAME).worksheet(nombre_hoja)
+    data = sheet.get_all_records()
+    return pd.DataFrame(data)
