@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import gspread
+import json
 from google.oauth2.service_account import Credentials
 
 # Configuración de página
@@ -15,7 +16,7 @@ SPREADSHEET_NAME = "WMS SIT"
 SHEET_NAME = "Usuarios"
 
 def get_sheet():
-    creds_dict = st.secrets["gcp_service_account"]
+    creds_dict = json.loads(st.secrets["google"]["credentials"])
     scopes = [
         "https://www.googleapis.com/auth/spreadsheets",
         "https://www.googleapis.com/auth/drive"
