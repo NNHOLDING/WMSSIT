@@ -7,7 +7,7 @@ import pandas as pd
 # Configuración Google Sheets
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
-SPREADSHEET_NAME = "WMS SIT"
+SPREADSHEET_NAME = "LPNs generados"
 SHEET_LPN = "LPNs generados"  # ✅ Nombre corregido
 
 # Función para conectar con hoja LPNs
@@ -143,3 +143,4 @@ else:
 
 # 📦 GRILLA CON FILTROS Y PAGINACIÓN (visible para todos)
 show_disponibles()
+
