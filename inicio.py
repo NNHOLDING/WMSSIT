@@ -48,9 +48,27 @@ def restablecer_contraseña(usuario, nueva_contraseña):
 
 # Interfaz de login
 def mostrar_login():
-    st.title("🔐 WMS - Inicio de sesión")
-    usuario = st.text_input("Usuario")
-    contraseña = st.text_input("Contraseña", type="password")
+    # Estilo para campos
+    st.markdown("""
+        <style>
+        .centered-input > div > input {
+            width: 100% !important;
+            max-width: 250px;
+        }
+        </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<h3 style='text-align: center;'>🔐 WMS - Inicio de sesión</h3>", unsafe_allow_html=True)
+
+    # Campos de acceso
+    col1, col2 = st.columns(2)
+    with col1:
+        usuario = st.text_input("Usuario", key="usuario")
+        st.markdown('<div class="centered-input"></div>', unsafe_allow_html=True)
+    with col2:
+        contraseña = st.text_input("Contraseña", type="password", key="contraseña")
+        st.markdown('<div class="centered-input"></div>', unsafe_allow_html=True)
+
     mostrar = st.checkbox("Mostrar contraseña")
     if mostrar:
         st.text_input("Contraseña visible", value=contraseña, disabled=True)
@@ -68,8 +86,16 @@ def mostrar_login():
 
     st.markdown("---")
     st.subheader("🔁 Restablecer contraseña")
-    usuario_reset = st.text_input("Usuario para restablecer")
-    nueva_pass = st.text_input("Nueva contraseña", type="password")
+
+    # Campos de restablecimiento
+    col3, col4 = st.columns(2)
+    with col3:
+        usuario_reset = st.text_input("Usuario para restablecer", key="usuario_reset")
+        st.markdown('<div class="centered-input"></div>', unsafe_allow_html=True)
+    with col4:
+        nueva_pass = st.text_input("Nueva contraseña", type="password", key="nueva_pass")
+        st.markdown('<div class="centered-input"></div>', unsafe_allow_html=True)
+
     if st.button("Restablecer"):
         if restablecer_contraseña(usuario_reset.strip(), nueva_pass.strip()):
             st.success("Contraseña actualizada correctamente")
