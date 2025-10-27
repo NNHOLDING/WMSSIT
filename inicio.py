@@ -1,17 +1,17 @@
 import streamlit as st
 import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import json
+from google.oauth2.service_account import Credentials
 
 # Configuración Google Sheets
-SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
 SHEET_NAME = "Usuarios"
 
-# Conexión a la hoja
+# Conexión a la hoja usando st.secrets
 def get_sheet():
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = Credentials.from_service_account_info(creds_dict)
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
     return sheet
@@ -48,7 +48,6 @@ def restablecer_contraseña(usuario, nueva_contraseña):
 
 # Interfaz de login
 def mostrar_login():
-    # Estilo para campos
     st.markdown("""
         <style>
         .centered-input > div > input {
