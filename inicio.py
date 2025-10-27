@@ -1,65 +1,77 @@
-import tkinter as tk
-from tkinter import ttk, messagebox
+import streamlit as st
+import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
 # Configuración Google Sheets
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
-SPREADSHEET_NAME = "TuNombreDeHoja"
+SPREADSHEET_NAME = "WMS SIT"
 SHEET_NAME = "Usuarios"
 
-# Función para conectar con Google Sheets
+# Conexión a la hoja
 def get_sheet():
     creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_NAME)
     return sheet
 
-# Función de autenticación
-def authenticate():
-    progress.start()
+# Validación de login
+def validar_login(usuario, contraseña):
     try:
         sheet = get_sheet()
         users = sheet.get_all_records()
-        usuario_ingresado = entry_user.get().strip()
-        contraseña_ingresada = entry_pass.get().strip()
-
         for user in users:
-            if user["Usuario"] == usuario_ingresado and user["Contraseña"] == contraseña_ingresada:
-                rol = user.get("Rol", "Sin rol")
-                messagebox.showinfo("Acceso concedido", f"Bienvenido {usuario_ingresado}\nRol: {rol}")
-                return
-        messagebox.showerror("Error", "Usuario o contraseña incorrectos")
+            if user["Usuario"] == usuario and user["Contraseña"] == contraseña:
+                return user.get("Rol", "Sin rol")
+        return None
     except Exception as e:
-        messagebox.showerror("Error", f"No se pudo conectar: {e}")
-    finally:
-        progress.stop()
+        st.error(f"No se pudo conectar: {e}")
+        return None
 
-# Interfaz gráfica
-root = tk.Tk()
-root.title("WMS - Inicio de sesión")
-root.geometry("350x300")
-root.configure(bg="#f0f4ff")
+# Restablecer contraseña
+def restablecer_contraseña(usuario, nueva_contraseña):
+    try:
+        sheet = get_sheet()
+        data = sheet.get_all_values()
+        df = pd.DataFrame(data[1:], columns=data[0])
+        if usuario not in df["Usuario"].values:
+            return False
 
-tk.Label(root, text="Inicio de sesión", font=("Helvetica", 16, "bold"), bg="#f0f4ff").pack(pady=10)
+        fila = df[df["Usuario"] == usuario].index[0] + 2  # +2 por encabezado y base 1
+        col = data[0].index("Contraseña") + 1
+        sheet.update_cell(fila, col, nueva_contraseña)
+        return True
+    except Exception as e:
+        st.error(f"No se pudo actualizar la contraseña: {e}")
+        return False
 
-tk.Label(root, text="Usuario", bg="#f0f4ff").pack()
-entry_user = tk.Entry(root)
-entry_user.pack()
+# Interfaz de login
+def mostrar_login():
+    st.title("🔐 WMS - Inicio de sesión")
+    usuario = st.text_input("Usuario")
+    contraseña = st.text_input("Contraseña", type="password")
+    mostrar = st.checkbox("Mostrar contraseña")
+    if mostrar:
+        st.text_input("Contraseña visible", value=contraseña, disabled=True)
 
-tk.Label(root, text="Contraseña", bg="#f0f4ff").pack()
-entry_pass = tk.Entry(root, show="*")
-entry_pass.pack()
+    if st.button("Iniciar sesión"):
+        rol = validar_login(usuario.strip(), contraseña.strip())
+        if rol:
+            st.session_state.logueado = True
+            st.session_state.rol = rol
+            st.session_state.usuario = usuario
+            st.success(f"Bienvenido {usuario}\nRol: {rol}")
+            st.rerun()
+        else:
+            st.error("Usuario o contraseña incorrectos")
 
-show_var = tk.BooleanVar()
-tk.Checkbutton(root, text="Mostrar contraseña", variable=show_var,
-               command=lambda: entry_pass.config(show="" if show_var.get() else "*"),
-               bg="#f0f4ff").pack()
-
-tk.Button(root, text="Iniciar sesión", bg="#add8e6", command=authenticate).pack(pady=10)
-
-progress = ttk.Progressbar(root, mode="indeterminate")
-progress.pack(fill="x", padx=20)
-
-root.mainloop()
+    st.markdown("---")
+    st.subheader("🔁 Restablecer contraseña")
+    usuario_reset = st.text_input("Usuario para restablecer")
+    nueva_pass = st.text_input("Nueva contraseña", type="password")
+    if st.button("Restablecer"):
+        if restablecer_contraseña(usuario_reset.strip(), nueva_pass.strip()):
+            st.success("Contraseña actualizada correctamente")
+        else:
+            st.error("No se pudo actualizar la contraseña")
