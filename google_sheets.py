@@ -1,16 +1,19 @@
+import streamlit as st
+import pandas as pd
 import gspread
-from oauth2client.service_account import ServiceAccountCredentials
+import json
 from datetime import datetime
+from oauth2client.service_account import ServiceAccountCredentials
 
 # 🔐 Configuración de acceso a Google Sheets
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
 SHEET_LPN = "LPNs Generados"
 
 # 📄 Obtener hoja específica de LPNs
 def get_lpn_sheet():
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+    creds_dict = json.loads(st.secrets["google"]["credentials"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
     client = gspread.authorize(creds)
     sheet = client.open(SPREADSHEET_NAME).worksheet(SHEET_LPN)
     return sheet
@@ -41,7 +44,8 @@ def generate_lpns(cantidad, usuario, bodega, tipo):
 
 # 📊 Obtener cualquier hoja como DataFrame
 def get_sheet(nombre_hoja):
-    creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
+    creds_dict = json.loads(st.secrets["google"]["credentials"])
+    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
     client = gspread.authorize(creds)
     hoja = client.open(SPREADSHEET_NAME).worksheet(nombre_hoja)
     data = hoja.get_all_values()
