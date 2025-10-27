@@ -8,7 +8,7 @@ import pandas as pd
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
-SHEET_LPN = "LPNs Generados"
+SHEET_LPN = "LPNs Generados"  # ✅ Corrección aplicada aquí
 
 # Función para conectar con hoja LPNs
 def get_lpn_sheet():
@@ -19,13 +19,13 @@ def get_lpn_sheet():
 
 # Obtener último consecutivo por tipo
 def get_last_lpn(sheet, tipo):
-    data = sheet.col_values(1)[1:] # Ignorar encabezado
+    data = sheet.col_values(1)[1:]  # Ignorar encabezado
     prefix = "IB" if tipo == "Etiquetas IB" else "OB"
     data = [d for d in data if d.startswith(prefix)]
     if not data:
         return 0
     last = data[-1]
-    return int(last[-6:]) # Extraer últimos 6 dígitos
+    return int(last[-6:])  # Extraer últimos 6 dígitos
 
 # Generar LPNs
 def generate_lpns(cantidad, usuario, bodega, tipo):
@@ -143,4 +143,3 @@ else:
 
 # 📦 GRILLA CON FILTROS Y PAGINACIÓN (visible para todos)
 show_disponibles()
-
