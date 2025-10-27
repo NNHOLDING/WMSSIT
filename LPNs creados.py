@@ -8,7 +8,7 @@ import pandas as pd
 SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
 CREDS_FILE = "credentials.json"
 SPREADSHEET_NAME = "WMS SIT"
-SHEET_LPN = "LPNs Generados"  # ✅ Corrección aplicada aquí
+SHEET_LPN = "LPNs generados"  # ✅ Nombre corregido
 
 # Función para conectar con hoja LPNs
 def get_lpn_sheet():
