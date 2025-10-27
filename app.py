@@ -6,7 +6,7 @@ from oauth2client.service_account import ServiceAccountCredentials
 import pytz
 from datetime import datetime
 
-# Configuración de zona horaria Costa Rica
+# Zona horaria Costa Rica
 cr_timezone = pytz.timezone("America/Costa_Rica")
 hora_actual = datetime.now(cr_timezone).strftime("%d/%m/%Y %H:%M")
 
@@ -25,8 +25,7 @@ if "logueado" not in st.session_state:
 
 # Mostrar login si no está autenticado
 if not st.session_state.logueado:
-    # Mostrar logo
-    st.image("https://drive.google.com/uc?export=view&id=1CgMBkG3rUwWOE9OodfBN1Tjinrl0vMOh", use_column_width=True)
+    st.image("https://github.com/NNHOLDING/WMSSIT/blob/main/logo3.png?raw=true", use_column_width=True)
     mostrar_login()
 
 # Mostrar contenido si está autenticado
@@ -45,6 +44,7 @@ else:
 
     st.title(f"📄 Datos de: {seleccion}")
     st.caption(f"🕒 Hora local: {hora_actual}")
+    st.markdown(f"👤 Usuario: **{st.session_state.usuario}** &nbsp;&nbsp;&nbsp; 🔐 Rol: **{st.session_state.rol}**")
 
     # Conexión a la hoja seleccionada
     SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
@@ -71,3 +71,11 @@ else:
         st.session_state.rol = ""
         st.session_state.usuario = ""
         st.rerun()
+
+# Footer institucional
+st.markdown("""
+    <hr style="margin-top: 50px; border: none; border-top: 1px solid #ccc;" />
+    <div style="text-align: center; color: gray; font-size: 0.9em; margin-top: 20px;">
+        Powered by NN HOLDING SOLUTIONS, Ever Be Better &copy; 2025, Todos los derechos reservados
+    </div>
+""", unsafe_allow_html=True)
