@@ -1,29 +1,30 @@
 import streamlit as st
-from inicio import mostrar_login, get_sheet
 import pandas as pd
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
 import pytz
 from datetime import datetime
 
-# Zona horaria Costa Rica
+from inicio import mostrar_login
+from google_sheets import get_sheet, generate_lpns
+from utils import show_disponibles
+
+# 🌎 Zona horaria Costa Rica
 cr_timezone = pytz.timezone("America/Costa_Rica")
 hora_actual = datetime.now(cr_timezone).strftime("%d/%m/%Y %H:%M")
 
-# Configuración de página
+# ⚙️ Configuración de página
 st.set_page_config(page_title="WMS SIT", page_icon="📦", layout="wide")
 
-# Inicializar sesión
+# 🧠 Inicializar sesión
 if "logueado" not in st.session_state:
-    st.session_state.update({"logueado": False, "rol": "", "usuario": ""})
+    st.session_state.update({"logueado": False, "rol": "", "usuario": "", "bodega": ""})
 
-# Pantalla de login
+# 🔐 Pantalla de login
 if not st.session_state.logueado:
     mostrar_login()
 
-# Interfaz principal
+# 🧾 Interfaz principal
 else:
-    st.sidebar.header("📁 Módulos")
+    st.sidebar.header("📁 Módulos disponibles")
     hojas = [
         "LPNs", "Recepción SKUs", "LPNs Eliminados", "LPNs Generados",
         "Ubicaciones", "Resumen de Almacenamiento", "Reportes por Pasillo"
@@ -33,29 +34,44 @@ else:
     st.markdown(f"### 📄 {seleccion}")
     st.caption(f"🕒 {hora_actual} &nbsp;&nbsp; 👤 {st.session_state.usuario} &nbsp;&nbsp; 🔐 {st.session_state.rol}")
 
-    # Conexión a Google Sheets
-    SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    CREDS_FILE = "credentials.json"
-    SPREADSHEET_NAME = "WMS SIT"
+    # 🧾 Módulo especial para generación y visualización de LPNs
+    if seleccion == "LPNs Generados":
+        if st.session_state.rol == "Admin":
+            st.subheader("🧾 Generar LPNs")
+            with st.form("form_lpn"):
+                tipo_etiqueta = st.selectbox("Tipo de etiqueta", ["Etiquetas IB", "Etiquetas OB"])
+                cantidad = st.number_input("Cantidad a generar", min_value=1, step=1)
+                submitted = st.form_submit_button("Generar")
 
-    def get_hoja(nombre):
-        creds = ServiceAccountCredentials.from_json_keyfile_name(CREDS_FILE, SCOPE)
-        client = gspread.authorize(creds)
-        hoja = client.open(SPREADSHEET_NAME).worksheet(nombre)
-        data = hoja.get_all_values()
-        return pd.DataFrame(data[1:], columns=data[0])
+                if submitted:
+                    usuario = st.session_state.get("usuario")
+                    bodega = st.session_state.get("bodega")
+                    if usuario and bodega:
+                        nuevos = generate_lpns(cantidad, usuario, bodega, tipo_etiqueta)
+                        st.success(f"{len(nuevos)} LPNs generados exitosamente.")
+                        st.dataframe(pd.DataFrame(nuevos, columns=["Número LPN", "Fecha creación", "Creado por", "Estado", "Bodega"]))
+                    else:
+                        st.error("Usuario o bodega no definidos en sesión.")
+        else:
+            st.info("Solo los usuarios con rol Admin pueden generar LPNs.")
 
-    try:
-        df = get_hoja(seleccion)
-        st.dataframe(df, use_container_width=True)
-    except Exception as e:
-        st.error(f"No se pudo cargar la hoja '{seleccion}': {e}")
+        # 📦 Mostrar grilla con filtros y exportación
+        show_disponibles()
 
+    # 📊 Visualización genérica para otras hojas
+    else:
+        try:
+            df = get_sheet(seleccion)
+            st.dataframe(df, use_container_width=True)
+        except Exception as e:
+            st.error(f"No se pudo cargar la hoja '{seleccion}': {e}")
+
+    # 🔚 Cierre de sesión
     if st.sidebar.button("Cerrar sesión"):
-        st.session_state.update({"logueado": False, "rol": "", "usuario": ""})
+        st.session_state.update({"logueado": False, "rol": "", "usuario": "", "bodega": ""})
         st.rerun()
 
-# Footer institucional
+# 🖋️ Footer institucional
 st.markdown("""
 <hr style="margin-top: 40px; border: none; border-top: 1px solid #ccc;" />
 <div style="text-align: center; color: gray; font-size: 0.85em; margin-top: 10px;">
