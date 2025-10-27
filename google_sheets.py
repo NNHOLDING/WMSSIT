@@ -10,8 +10,11 @@ SCOPE = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/au
 SPREADSHEET_NAME = "WMS SIT"
 SHEET_LPN = "LPNs generados"
 
+# ✅ Corrección: decodificar correctamente la clave privada
 def get_credentials():
-    creds_dict = json.loads(st.secrets["google"]["credentials"])
+    raw_json = st.secrets["google"]["credentials"]
+    fixed_json = raw_json.replace("\\n", "\n")  # convierte texto plano en formato PEM válido
+    creds_dict = json.loads(fixed_json)
     return ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, SCOPE)
 
 def get_lpn_sheet():
